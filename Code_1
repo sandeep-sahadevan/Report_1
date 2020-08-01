@@ -1,0 +1,67 @@
+import xlrd
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+ex1 = 'jtrac-refer.xls'
+dex1 = pd.read_excel(ex1)
+ex2 = 'jtrac-infy.xls'
+ex3 = 'jtrac-assi.xls'
+ex4 = 'cbs_template_verified (Autosaved).xlsx'
+ex5 = 'output.xlsx'
+dex2 = pd.read_excel(ex2)
+dex3 = pd.read_excel(ex3)
+
+base = pd.read_excel(ex4 , sheet_name = 'BASE FILE')
+op1 = dex1[['Unnamed: 4','Unnamed: 11']]
+op2 = dex2[['Unnamed: 4','Unnamed: 11']]
+op3 = dex3[['Unnamed: 4','Unnamed: 11']]
+out = pd.concat([op1,op2,op3])
+out.columns = ['Name','Date']
+out['Date'] = out.Date.apply(lambda x: x.date())
+base.columns =  ['No','Name','ID']
+base
+df_3 = pd.merge(out, base[['ID','Name']], on='Name', how='left')
+df_3.to_excel(ex5)
+dex5 = pd.read_excel(ex5)
+dex5
+
+today     = np.datetime64('today', 'D') - np.timedelta64(10, 'D')
+Dat1 = np.datetime64('today', 'D') - np.timedelta64(1, 'D')
+Dat2 = np.datetime64('today', 'D') - np.timedelta64(2, 'D')
+Dat5 = np.datetime64('today', 'D') - np.timedelta64(5, 'D')
+Dat7 = np.datetime64('today', 'D') - np.timedelta64(7, 'D')
+df = dex5
+cbs_y = df[(df["Date"] < today) & (df["Date"] > today - np.timedelta64(2, 'D'))]
+cbs_2 = df[(df["Date"] < today - np.timedelta64(1, 'D')) & (df["Date"] > today - np.timedelta64(3, 'D'))]
+cbs_5 = df[(df["Date"] < today - np.timedelta64(2, 'D')) & (df["Date"] > today - np.timedelta64(5, 'D'))]
+cbs_7 = df[(df["Date"] < today - np.timedelta64(6, 'D')) & (df["Date"] > today - np.timedelta64(8, 'D'))]
+cbs_less = df[(df["Date"] < today - np.timedelta64(7, 'D'))]
+
+def cnt(x,y):
+    z=len(x[x.ID.str.contains(y)])
+    return z
+
+a1_sys_2 = cnt(cbs_2,'sysadmin')
+a2_sys_5 = cnt(cbs_5, 'sysadmin')
+a3_sys_7 = cnt(cbs_7,'sysadmin')
+a4_sys_p = cnt(cbs_less,'sysadmin')
+a1_cbs_2 = cnt(cbs_2,'cbs admin')
+a2_cbs_5 = cnt(cbs_5, 'cbs admin')
+a3_cbs_7 = cnt(cbs_7,'cbs admin')
+a4_cbs_p = cnt(cbs_less,'cbs admin')
+a1_inf_2 = cnt(cbs_2,'infosys')
+a2_inf_5 = cnt(cbs_5, 'infosys')
+a3_inf_7 = cnt(cbs_7,'infosys')
+a4_inf_p = cnt(cbs_less,'infosys')
+
+##len(cbs_less[cbs_less.ID.str.contains('cbs admin')])
+##len(cbs_less[cbs_less.ID.str.contains('sysadmin')])
+##len(cbs_less[cbs_less.ID.str.contains('infosys')])
+
+data = [[a1_sys_2,a2_sys_5,a3_sys_7,a4_sys_p],[a1_cbs_2,a2_cbs_5,a3_cbs_7,a4_cbs_p],[a1_inf_2,a2_inf_5,a3_inf_7,a4_inf_p]]
+output = pd.DataFrame(data , columns = ['Pendind_2','Pendind_5','Pendind_7', 'Pendind_less_7'] , index = ['Sysadmin', 'CBS_Admin' , 'Infosys'])
+output
+
+data_2 = [[output.sum().sum(),len(cbs_y)]]
+output_2 = pd.DataFrame(data_2 ,  columns = ['Brought_Forward','Pendind_Calls'] ,  index= ['Count'])
+output_2
